@@ -23,13 +23,6 @@ class CoffeeOrder:
 
 
 class CoffeeOrderBuilder:
-    """
-    Строитель заказа кофе. Поддерживает пошаговую сборку с валидацией:
-    - обязательны base и size;
-    - лимиты: сахар 0..5, сиропов до 4 уникальных, шотов 0..3;
-    - доплаты и множители задаются класс-атрибутами;
-    - build возвращает неизменяемый CoffeeOrder, билдер можно переиспользовать.
-    """
 
     BASE_PRICES = {
         "espresso": 200.0,
@@ -42,7 +35,7 @@ class CoffeeOrderBuilder:
     MILK_SURCHARGES = {"none": 0.0, "whole": 30.0, "skim": 30.0, "oat": 60.0, "soy": 50.0}
     SYRUP_PRICE = 40.0
     SHOT_PRICE = 70.0
-    ICED_RATE = 0.2  # 20% надбавка к базовой стоимости
+    ICED_RATE = 0.2
 
     MAX_SYRUPS = 4
     MAX_SUGAR = 5
@@ -59,7 +52,6 @@ class CoffeeOrderBuilder:
         self._iced: bool = False
         self._shots: int = 0
 
-    # Fluent setters
     def set_base(self, base: str) -> "CoffeeOrderBuilder":
         if base not in self.BASE_PRICES:
             raise ValueError(f"Недопустимая база: {base}")
@@ -112,7 +104,6 @@ class CoffeeOrderBuilder:
         self._iced = False
         return self
 
-    # Build helpers
     def _calc_price(self) -> float:
         assert self._base is not None
         assert self._size is not None
@@ -166,8 +157,6 @@ class CoffeeOrderBuilder:
             extra_shots=self._shots,
         )
 
-
-# --------------------- Примитивные проверки ---------------------
 if __name__ == "__main__":
     builder = CoffeeOrderBuilder()
     order_basic = (
@@ -187,7 +176,6 @@ if __name__ == "__main__":
     assert order_basic.iced is True
     assert order_basic.extra_shots == 1
 
-    # Переиспользование билдера
     order_second = builder.set_milk("soy").add_syrup("hazelnut").add_shot().build()
     assert order_second is not order_basic
     assert order_second.price != order_basic.price
@@ -195,7 +183,6 @@ if __name__ == "__main__":
     assert order_basic.extra_shots == 1
     assert order_second.extra_shots == 2
 
-    # Валидации обязательных полей
     try:
         CoffeeOrderBuilder().set_size("small").build()
     except ValueError:
@@ -210,7 +197,6 @@ if __name__ == "__main__":
     else:
         raise AssertionError("Отсутствие size не вызвало ошибку")
 
-    # Лимиты
     try:
         CoffeeOrderBuilder().set_base("latte").set_size("small").set_sugar(6)
     except ValueError:
@@ -231,7 +217,6 @@ if __name__ == "__main__":
     else:
         raise AssertionError("Превышение лимита шотов не проверено")
 
-    # Дубликат сиропа
     order_dup = (
         CoffeeOrderBuilder()
         .set_base("americano")
@@ -242,7 +227,6 @@ if __name__ == "__main__":
     )
     assert order_dup.syrups == ("vanilla",)
 
-    # Надбавка за лед
     iced_price = (
         CoffeeOrderBuilder()
         .set_base("espresso")
@@ -254,5 +238,5 @@ if __name__ == "__main__":
     hot_price = CoffeeOrderBuilder().set_base("espresso").set_size("small").build().price
     assert iced_price > hot_price
 
-    print("All basic checks passed.")
+    print("All checks passed.")
 
